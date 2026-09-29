@@ -5,13 +5,25 @@ from typing import Optional
 from sqlalchemy import and_
 from sqlalchemy import select, delete, update, func
 
-from config import ADMIN_CHAT_ID
+from config import ADMIN_CHATS_INFO
 from database.models import Admin, BannedUser, UserInMailing, Event, EventSingUp, UserProfile
 from database.models import async_session
 from utils import setup_logger
 
 logger = setup_logger()
 
+
+async def update_user_signups_profile(
+    chat_id: int, nickname: str, level: int
+) -> None:
+  async with async_session() as session:
+    stmt = (
+        update(EventSingUp)
+        .where(EventSingUp.chat_id == chat_id)
+        .values(full_name=nickname, level=level)
+    )
+    await session.execute(stmt)
+    await session.commit()
 
 async def get_events():
     async with async_session() as session:
@@ -107,7 +119,7 @@ async def check_ban(*, chat_id: int):
 
 async def check_admin(*, chat_id: int):
     async with async_session() as session:
-        if str(chat_id) == ADMIN_CHAT_ID:
+        if str(chat_id) in ADMIN_CHATS_INFO:
             return True
         else:
             return await session.scalar(select(Admin).where(Admin.chat_id == chat_id))

@@ -96,3 +96,25 @@ ___
 ## Авторы
 * [@parap3t](https://github.com/parap3t)
 * [@cenittteee](https://github.com/cenittteee)
+
+___
+
+# Полезное 
+
+## Build&Push to DockerHub
+```bash
+docker build -t mafia-bot .
+docker tag mafia-bot g00ida/mafia-bot:latest
+docker push g00ida/mafia-bot:latest
+```
+
+## Pull
+
+```bash
+cd /opt/mafia
+cat .env | docker run -d \
+  --name mafia-bot \
+  --restart always \
+  --env-file /dev/stdin \
+  g00ida/mafia-bot:latest
+```

@@ -41,12 +41,12 @@ LEVEL_DESCR = [
     },
     {
         "level_id": 3,
-        "level_symbol": "🔵",
+        "level_symbol": "🟠",
         "level_name": "Уверенная база",
     },
     {
         "level_id": 4,
-        "level_symbol": "🟠",
+        "level_symbol": "🔵",
         "level_name": "Опытный, уровень 1"
     },
     {

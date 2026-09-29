@@ -2,6 +2,7 @@ import os
 import time
 from datetime import datetime
 from re import search, compile
+from aiogram.client.session.aiohttp import AiohttpSession
 
 import pandas as pd
 import httpx
@@ -24,9 +25,6 @@ from utils import setup_logger
 
 # Чтобы не писать dispatcher 2-й раз заменим его на роутер
 admin = Router()
-
-# Создаём переменную с ботом, чтобы в дальнейшем можно было отправить рассылку
-BOT = Bot(token=BOT_API)
 
 logger = setup_logger()
 

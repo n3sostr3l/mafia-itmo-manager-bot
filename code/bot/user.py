@@ -15,7 +15,7 @@ from database.requests import (check_ban, check_event_by_name, add_in_mailing, g
                                add_signup_user,
                                get_count_of_events, check_is_signup_open, get_signup_people, get_user_profile,
                                save_user_profile, get_users_with_polemica_id, get_guest_count_for_event,
-                               check_passes_sent)
+                               check_passes_sent, update_user_signups_profile)
 from plugins.achievements import get_user_achievements_text, get_club_stars_achievements_text
 from plugins.rating import get_club_rating
 from plugins.research import get_pair_stat_text
@@ -279,7 +279,9 @@ async def btn_event_name_click(message: Message, state: FSMContext, event_name: 
 '''
 
     registered_users_str = "\nСписок зарегистрированных пользователей:\n{registered_users_list}\n"
-
+    grouped_by_level_str = "\n"
+    
+    
     if event_name is None:
         event_name = message.text
         await state.set_state(EventSignUp.event_name)
@@ -324,6 +326,19 @@ async def btn_event_name_click(message: Message, state: FSMContext, event_name: 
     registered_users_str = registered_users_str.format(
         registered_users_list=registered_users_list)
 
+
+    print("LEVEL_DESCR:", kb.LEVEL_DESCR)
+    print("levels:", levels)
+
+    for level in kb.LEVEL_DESCR:
+        level_count = 0
+        
+        for level_id in levels:
+            if level['level_id'] == level_id: level_count += 1
+        grouped_by_level_str += f"\n{level['level_symbol']}: 👤{level_count}"
+    
+    print("GROUPED:", repr(grouped_by_level_str))
+    
     signup = await check_signup(event_name=event_name, chat_id=chat_id)
     if signup is None:
         # Пользователь не записан или запись отменена
@@ -334,7 +349,7 @@ async def btn_event_name_click(message: Message, state: FSMContext, event_name: 
                 event_desc=event_desc,
                 is_signup_open_str=is_signup_open_str,
                 event_limit=event_limit
-            ) + registered_users_str,
+            ) + registered_users_str + grouped_by_level_str,
             parse_mode="HTML",
             reply_markup=await kb.get_event_menu(rights="user", event_status="unsigned", event_name=event_name)
         )
@@ -347,7 +362,7 @@ async def btn_event_name_click(message: Message, state: FSMContext, event_name: 
                 event_info_for_message.format(event_name=event_name, event_date=event_date, event_desc=event_desc,
                                               is_signup_open_str=is_signup_open_str, event_limit=event_limit) +
                 "🛎Статус : пойду\n" +
-                registered_users_str,
+                registered_users_str + grouped_by_level_str,
                 parse_mode="HTML",
                 reply_markup=await kb.get_event_menu(rights="user", event_status="signed", event_name=event_name)
             )
@@ -357,7 +372,8 @@ async def btn_event_name_click(message: Message, state: FSMContext, event_name: 
                                               is_signup_open_str=is_signup_open_str, event_limit=event_limit) +
                 user_data_str.format(signup_user_full_name=signup_user_full_name) +
                 f"\n🛎Статус : не пойду"
-                f"\n\n{registered_users_str}",
+                f"\n\n{registered_users_str}"
+                f"\n{grouped_by_level_str}",
                 parse_mode="HTML",
                 reply_markup=await kb.get_event_menu(rights="user", event_name=event_name)
             )
@@ -631,7 +647,13 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
             phone=phone,
             username=username
         )
-
+        
+        await update_user_signups_profile(
+            chat_id=callback.from_user.id,
+            nickname=nickname,
+            level=level_data['level_id']
+        )
+        
         profile_info = f"""
             Игровой ник: <b>{nickname}</b>
             Уровень: <b>{level_data['level_name']}</b>

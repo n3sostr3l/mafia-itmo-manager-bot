@@ -17,3 +17,4 @@ def setup_logger(level=logging.INFO,
     formatter = logging.Formatter(format)
     fh.setFormatter(formatter)
     return logger
+
