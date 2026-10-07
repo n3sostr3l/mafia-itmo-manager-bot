@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: mafia-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-prod}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mafia}
+      POSTGRES_DB: ${DB_NAME:-event-manager}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-prod} -d ${DB_NAME:-event-manager}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  bot:
+    build: .
+    container_name: mafia-bot
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Внутри сети Docker имя хоста совпадает с именем сервиса базы (db)
+      - DB_HOST=prod
+      - DB_PORT=5433
+
+volumes:
+  postgres_data:
